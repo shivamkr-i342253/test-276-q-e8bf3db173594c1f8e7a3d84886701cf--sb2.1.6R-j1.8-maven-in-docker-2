@@ -17,10 +17,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -125,7 +122,8 @@ public class FileProcessor {
 
             if (exceptionCountList.size() > 0) {
                 TimestampLogs timestampLogs = new TimestampLogs();
-                String timestamp = timeRangeFromTimestamp(String.valueOf(minTimestampValue), minTimestampRange);
+                String subTimestamp = String.valueOf(minTimestampValue);
+                String timestamp = timeRangeFromTimestamp(subTimestamp, minTimestampRange);
                 timestampLogs.setTimestamp(timestamp);
                 timestampLogs.setLogs(exceptionCountList);
                 timestampLogsList.add(timestampLogs);
@@ -142,8 +140,13 @@ public class FileProcessor {
 
     public String timeRangeFromTimestamp(String timestamp, String timestampRange) {
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("kk:mm:ss");
-        simpleDateFormat.applyPattern("hh:mm");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
+        simpleDateFormat.applyPattern("HH:mm");
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+//        Date date1 = new Date(Long.parseLong(timestamp.substring(0, timestamp.length()-3)+"000"));
+//        String startTime1 = simpleDateFormat.format(date1);
+//        LOG.info(startTime1);
 
         Date date = new Date(Long.parseLong(timestamp));
         String startTime = simpleDateFormat.format(date);
