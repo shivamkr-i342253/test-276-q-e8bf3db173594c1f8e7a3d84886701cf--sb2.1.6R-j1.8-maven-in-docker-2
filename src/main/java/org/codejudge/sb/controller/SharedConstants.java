@@ -13,4 +13,8 @@ public class SharedConstants {
     public static final String RESPONSE = "response";
 
     public static final long RECORDS_RANGE = 900000;
+
+    public static final String CUSTOM_BEAN_ID = "customThreadPool";
+
+    public static final int LOG_INTERVAL = 720000;
 }

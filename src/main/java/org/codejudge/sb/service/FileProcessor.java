@@ -1,23 +1,21 @@
 package org.codejudge.sb.service;
 
-import org.codejudge.sb.controller.AppController;
 import org.codejudge.sb.controller.SharedConstants;
 import org.codejudge.sb.model.ExceptionCount;
 import org.codejudge.sb.model.TimestampLogs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,35 +26,7 @@ public class FileProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(FileProcessor.class);
 
-    private void saveData(List<Object[]> data) {
-        jdbcTemplate.batchUpdate("INSERT INTO logs(request_id, timestamp, exception_name) VALUES (?,?,?)", data);
-    }
 
-    @Async
-    public void fetchFile(String fileUrl) {
-        try {
-
-            URL url = new URL(fileUrl);
-            Scanner scanner = new Scanner(url.openStream());
-            List<String> fileContents = new ArrayList<>();
-
-            while (scanner.hasNextLine()) {
-                fileContents.add(scanner.nextLine());
-
-            }
-            List<Object[]> splitUpData = fileContents.stream().map(record -> record.split(" ")).collect(Collectors.toList());
-
-            saveData(splitUpData);
-
-        }
-        catch (MalformedURLException e) {
-            LOG.error(e.getLocalizedMessage());
-        }
-        catch (IOException e) {
-            LOG.error(e.getLocalizedMessage());
-        }
-
-    }
 
     private void initializeDataStore() {
         LOG.info("Creating tables...");
@@ -72,9 +42,17 @@ public class FileProcessor {
 
         initializeDataStore();
 
+        List<CompletableFuture<Integer>> completableFutureList = new ArrayList<>();
+
         for (int i = 0; i < fileList.size(); ++i) {
 
-            fetchFile(fileList.get(i));
+            FileTask fileTask = new FileTask(jdbcTemplate);
+
+            completableFutureList.add(fileTask.fetchFile(fileList.get(i)));
+        }
+
+        for (int i = 0; i < completableFutureList.size(); ++i) {
+            CompletableFuture.allOf(completableFutureList.get(i)).join();
         }
 
         return aggregateLogsByTimestamp();
@@ -112,6 +90,8 @@ public class FileProcessor {
 
         long maxTimestampValue = Long.parseLong(maxTimestamp);
 
+        minTimestampValue -= SharedConstants.LOG_INTERVAL;
+
         while (minTimestampValue <= maxTimestampValue) {
 
             String minTimestampRange = String.valueOf(minTimestampValue + SharedConstants.RECORDS_RANGE);
@@ -133,7 +113,7 @@ public class FileProcessor {
         }
 
 
-        LOG.info(minTimestamp);
+//        LOG.info(minTimestamp);
 
         return timestampLogsList;
     }
@@ -144,9 +124,6 @@ public class FileProcessor {
         simpleDateFormat.applyPattern("HH:mm");
         simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-//        Date date1 = new Date(Long.parseLong(timestamp.substring(0, timestamp.length()-3)+"000"));
-//        String startTime1 = simpleDateFormat.format(date1);
-//        LOG.info(startTime1);
 
         Date date = new Date(Long.parseLong(timestamp));
         String startTime = simpleDateFormat.format(date);

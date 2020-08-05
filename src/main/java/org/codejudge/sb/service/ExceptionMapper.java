@@ -12,7 +12,7 @@ public class ExceptionMapper implements RowMapper<ExceptionCount> {
     public ExceptionCount mapRow(ResultSet rs, int rowNum) throws SQLException {
         ExceptionCount exceptionCount = new ExceptionCount();
         exceptionCount.setException(rs.getString(2));
-        exceptionCount.setCount(rs.getString(1));
+        exceptionCount.setCount(Integer.parseInt(rs.getString(1)));
 
         return exceptionCount;
     }

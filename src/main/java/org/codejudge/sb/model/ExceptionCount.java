@@ -2,7 +2,7 @@ package org.codejudge.sb.model;
 
 public class ExceptionCount {
     private String exception;
-    private String count;
+    private int count;
 
     @Override
     public String toString() {
@@ -20,11 +20,11 @@ public class ExceptionCount {
         this.exception = exception;
     }
 
-    public String getCount() {
+    public int getCount() {
         return count;
     }
 
-    public void setCount(String count) {
+    public void setCount(int count) {
         this.count = count;
     }
 }
