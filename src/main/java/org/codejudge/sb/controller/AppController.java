@@ -53,7 +53,7 @@ public class AppController {
         }
         else {
 
-            updateBean(parallelCount.intValue());
+//            updateBean(parallelCount.intValue());
 
             List<String> logFilesList = new ArrayList<>();
 
@@ -65,7 +65,7 @@ public class AppController {
 
             Map<String, List<TimestampLogs>> responseMap = new HashMap<>();
 
-            responseMap.put(SharedConstants.RESPONSE, fileProcessor.processLogFilesList(logFilesList));
+            responseMap.put(SharedConstants.RESPONSE, fileProcessor.processLogFilesList(logFilesList, parallelCount.intValue()));
 
             return responseMap;
 

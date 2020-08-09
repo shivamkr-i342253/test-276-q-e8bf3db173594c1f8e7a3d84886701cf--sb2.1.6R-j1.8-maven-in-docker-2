@@ -14,7 +14,7 @@ import java.util.concurrent.Executor;
 @SpringBootApplication
 @ComponentScan({"org.codejudge.sb"})
 @Slf4j
-@EnableAsync
+//@EnableAsync
 public class Application {
 
     public static void main(String[] args) {
@@ -22,10 +22,10 @@ public class Application {
         SpringApplication.run(Application.class, args);
     }
 
-    @Bean(name = "customThreadPool")
-    public Executor taskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-//        executor.initialize();
-        return executor;
-    }
+//    @Bean(name = "customThreadPool")
+//    public Executor taskExecutor() {
+//        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+////        executor.initialize();
+//        return executor;
+//    }
 }

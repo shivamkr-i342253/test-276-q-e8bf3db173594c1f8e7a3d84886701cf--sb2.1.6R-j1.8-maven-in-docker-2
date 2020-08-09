@@ -20,14 +20,17 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
-public class FileTask {
+public class FileTask implements Runnable {
 
     private JdbcTemplate jdbcTemplate;
 
+    private String fileUrl;
+
     private static final Logger LOG = LoggerFactory.getLogger(FileTask.class);
 
-    public FileTask(JdbcTemplate jdbcTemplate) {
+    public FileTask(JdbcTemplate jdbcTemplate, String fileUrl) {
         this.jdbcTemplate = jdbcTemplate;
+        this.fileUrl = fileUrl;
     }
 
     private Integer saveData(List<Object[]> data) {
@@ -43,11 +46,12 @@ public class FileTask {
 
     }
 
-    @Async
-    public CompletableFuture<Integer> fetchFile(String fileUrl) {
+//    @Async
+    @Override
+    public void run() {
         try {
 
-            URL url = new URL(fileUrl);
+            URL url = new URL(this.fileUrl);
             Scanner scanner = new Scanner(url.openStream());
             List<String> fileContents = new ArrayList<>();
 
@@ -57,7 +61,7 @@ public class FileTask {
             }
             List<Object[]> splitUpData = fileContents.stream().map(record -> record.split(" ")).collect(Collectors.toList());
 
-            return CompletableFuture.completedFuture(saveData(splitUpData));
+            saveData(splitUpData);
 
         }
         catch (MalformedURLException e) {
@@ -66,8 +70,6 @@ public class FileTask {
         catch (IOException e) {
             LOG.error(e.getLocalizedMessage());
         }
-
-        return null;
 
     }
 }

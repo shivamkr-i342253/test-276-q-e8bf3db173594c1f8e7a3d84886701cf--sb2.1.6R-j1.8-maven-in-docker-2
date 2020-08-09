@@ -16,6 +16,9 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +26,8 @@ public class FileProcessor {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    private ExecutorService executorService;
 
     private static final Logger LOG = LoggerFactory.getLogger(FileProcessor.class);
 
@@ -38,21 +43,26 @@ public class FileProcessor {
 
     }
 
-    public List<TimestampLogs> processLogFilesList(List<String> fileList) {
+    public List<TimestampLogs> processLogFilesList(List<String> fileList, int pool) {
 
         initializeDataStore();
 
-        List<CompletableFuture<Integer>> completableFutureList = new ArrayList<>();
+         this.executorService = Executors.newFixedThreadPool(pool);
 
         for (int i = 0; i < fileList.size(); ++i) {
 
-            FileTask fileTask = new FileTask(jdbcTemplate);
+            FileTask fileTask = new FileTask(jdbcTemplate, fileList.get(i));
 
-            completableFutureList.add(fileTask.fetchFile(fileList.get(i)));
+            executorService.submit(fileTask);
         }
 
-        for (int i = 0; i < completableFutureList.size(); ++i) {
-            CompletableFuture.allOf(completableFutureList.get(i)).join();
+        executorService.shutdown();
+
+        try {
+            executorService.awaitTermination(1000L, TimeUnit.MILLISECONDS);
+        }
+        catch (InterruptedException e) {
+            LOG.error(e.getLocalizedMessage());
         }
 
         return aggregateLogsByTimestamp();
