@@ -59,7 +59,7 @@ public class FileProcessor {
         executorService.shutdown();
 
         try {
-            executorService.awaitTermination(1000L, TimeUnit.MILLISECONDS);
+            executorService.awaitTermination(SharedConstants.THREAD_AWAIT, TimeUnit.MILLISECONDS);
         }
         catch (InterruptedException e) {
             LOG.error(e.getLocalizedMessage());

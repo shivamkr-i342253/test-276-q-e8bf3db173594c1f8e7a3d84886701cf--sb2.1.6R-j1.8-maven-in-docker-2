@@ -17,4 +17,6 @@ public class SharedConstants {
     public static final String CUSTOM_BEAN_ID = "customThreadPool";
 
     public static final int LOG_INTERVAL = 720000;
+
+    public static final long THREAD_AWAIT = 10000L;
 }
